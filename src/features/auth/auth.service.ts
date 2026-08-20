@@ -82,6 +82,8 @@ export class AuthService {
         getInvitationTemplate(activationUrl, data.role),
       );
 
+      // await sendEmail(data.email, "Test Brevo Final", "<p>Test avec Brevo</p>");
+
       return { data };
     } catch (error) {
       if (
@@ -90,7 +92,7 @@ export class AuthService {
       ) {
         throw new ConflictError(AUTH_ERRORS.EMAIL_EXISTS);
       }
-      throw new InternalServerError(AUTH_ERRORS.FAILED_CREATION);
+      throw new InternalServerError(error as any);
     }
   }
 
