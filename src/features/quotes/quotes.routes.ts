@@ -1,4 +1,3 @@
-// backend/src/features/quotes/quotes.routes.ts
 import { Router } from "express";
 import { protect, restrictTo } from "@/middlewares/auth.middleware.js";
 import { quotesController } from "./quotes.controller.js";
@@ -13,6 +12,13 @@ router.use(protect, restrictTo("ADMIN", "SALES"));
  * @access  Private (All authenticated users)
  */
 router.get("/", quotesController.listQuotes);
+
+/**
+ * @desc    Statistiques de devis (KPI fixes)
+ * @route   GET /api/quotes/stats
+ * @access  Private (All authenticated users)
+ */
+router.get("/stats", quotesController.getStats);
 
 /**
  * @desc    Get quote by ID (with orders)

@@ -1,6 +1,5 @@
-// backend/src/features/invoices/invoices.routes.ts
 import { Router } from "express";
-import { protect, restrictTo } from "@/middlewares/auth.middleware.js";
+import { protect } from "@/middlewares/auth.middleware.js";
 import { invoicesController } from "./invoices.controller.js";
 
 const router: Router = Router();
@@ -13,6 +12,13 @@ router.use(protect);
  * @access  Private (All authenticated users)
  */
 router.get("/", invoicesController.listInvoices);
+
+/**
+ * @desc    Statistiques de facturation (KPI fixes)
+ * @route   GET /api/invoices/stats
+ * @access  Private (All authenticated users)
+ */
+router.get("/stats", invoicesController.getStats);
 
 /**
  * @desc    Get invoice by ID (with orders and payments)

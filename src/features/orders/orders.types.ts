@@ -6,7 +6,6 @@ import {
   addOrderFileSchema,
   ordersQuerySchema,
   updateOrderSchema,
-  orderIdParamSchema,
 } from "./orders.schema.js";
 
 export const orderListSelect = {
@@ -102,6 +101,14 @@ export type OrderListOutput = Prisma.OrderGetPayload<{
 export type OrderDetailOutput = Prisma.OrderGetPayload<{
   select: typeof orderDetailSelect;
 }>;
+
+export type OrderStats = {
+  waitingForFile: number;
+  inProgress: number;
+  inProduction: number;
+  readyForDelivery: number;
+  byStatus: Record<string, number>;
+};
 
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 export type AddOrderNoteInput = z.infer<typeof addOrderNoteSchema>;

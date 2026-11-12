@@ -1,4 +1,3 @@
-// backend/src/features/invoices/invoices.constants.ts
 export const INVOICE_ERRORS = {
   NOT_FOUND: "Facture introuvable",
   NO_FIELDS_TO_UPDATE: "Aucun champ à mettre à jour",
@@ -10,4 +9,8 @@ export const INVOICE_ERRORS = {
   DELETE_PAYMENT_FAILED: "Échec de la suppression du paiement",
   DELETE_FAILED: "Échec de la suppression de la facture",
   RESTORE_FAILED: "Échec de la restauration de la facture",
+} as const;
+
+export const INVOICE_STATS_ERRORS = {
+  STATS_FAILED: "Échec de la récupération des statistiques de facturation",
 } as const;
