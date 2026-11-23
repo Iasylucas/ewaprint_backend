@@ -54,6 +54,8 @@ model User {
 
   resetTokens       PasswordResetToken[]
   resetEmailRequest EmailChangeRequest[]
+  orderStatusChanges OrderStatusHistory[]
+  notifications Notification[]
 }
 
 enum Role {
@@ -61,6 +63,7 @@ enum Role {
   SALES
   PRINTER
   GRAPHIC_DESIGNER
+  DELIVERER
 }
 
 model InvitationToken {
@@ -298,14 +301,33 @@ model Order {
   quoteId   Int?
   quote     Quote?   @relation(fields: [quoteId], references: [id])
 
-  // 👇 Audit
   createdById String
   createdBy   User      @relation("UserOrder", fields: [createdById], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  statusHistory OrderStatusHistory[]
+  notifications Notification[]
 
   @@index([createdAt])
+}
+
+model OrderStatusHistory {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  fromStatus String?
+  toStatus   String
+
+  changedById String
+  changedBy   User   @relation(fields: [changedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@index([changedById])
 }
 
 model Product {
@@ -340,6 +362,29 @@ model PricingRule {
   updatedAt   DateTime       @updatedAt
 
   @@index([variantId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      String
+  title     String
+  message   String
+  link      String?
+
+  orderId   Int?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  metadata  Json?
+
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }
 
 enum PricingMode {

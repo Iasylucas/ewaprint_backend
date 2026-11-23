@@ -112,6 +112,11 @@ export type AppSettings = Prisma.AppSettingsModel
  */
 export type Order = Prisma.OrderModel
 /**
+ * Model OrderStatusHistory
+ * 
+ */
+export type OrderStatusHistory = Prisma.OrderStatusHistoryModel
+/**
  * Model Product
  * 
  */
@@ -126,3 +131,8 @@ export type ProductVariant = Prisma.ProductVariantModel
  * 
  */
 export type PricingRule = Prisma.PricingRuleModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel

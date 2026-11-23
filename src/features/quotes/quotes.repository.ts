@@ -9,6 +9,9 @@ import {
   QuoteStats,
 } from "./quotes.types.js";
 import { InternalServerError } from "@/shared/error/error.js";
+import { notificationsService } from "../notifications/notifications.service.js";
+import { NOTIFICATION_TYPES } from "../notifications/notifications.constants.js";
+import { isServiceProduct } from "../orders/orders.constants.js";
 
 export class QuotesRepository {
   async findAll(query: QuotesQuery): Promise<PaginatedQuotesList> {
@@ -141,68 +144,92 @@ export class QuotesRepository {
     userId: string,
     companyInfoId: number,
   ) {
-    const companyInfo = companyInfoId;
+    return await prisma.$transaction(async (tx) => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-
-    const currentCount = await prisma.invoice.count({
-      where: {
-        createdAt: {
-          gte: new Date(year, now.getMonth(), 1),
-          lte: new Date(year, now.getMonth() + 1, 0, 23, 59, 59, 999),
-        },
-      },
-    });
-
-    const nextSequence = String(currentCount + 1).padStart(3, "0");
-    const invoiceNumber = `F-${year}-${month}-${nextSequence}`;
-
-    const invoice = await prisma.invoice.create({
-      data: {
-        number: invoiceNumber,
-        clientId: quote.clientId,
-        companyInfoId: companyInfo,
-        createdById: userId,
-        total: quote.total,
-        deposit: 0,
-        paymentStatus: "unpaid",
-        isDelivered: false,
-        originalQuoteId: quote.id,
-      },
-      select: {
-        id: true,
-        number: true,
-        total: true,
-        deposit: true,
-        paymentStatus: true,
-        isDelivered: true,
-        clientId: true,
-        createdAt: true,
-      },
-    });
-
-    if (quote.orders && quote.orders.length > 0) {
-      for (const order of quote.orders) {
-        await prisma.order.create({
-          data: {
-            reference: `CMD-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            designation: order.designation,
-            clientId: quote.clientId,
-            invoiceId: invoice.id,
-            productId: order.productId,
-            dimensions: order.dimensions,
-            label: order.label,
-            quantity: order.quantity,
-            unitPrice: order.unitPrice,
-            createdById: userId,
-            status: "waiting_for_file",
+      const currentCount = await tx.invoice.count({
+        where: {
+          createdAt: {
+            gte: new Date(year, now.getMonth(), 1),
+            lte: new Date(year, now.getMonth() + 1, 0, 23, 59, 59, 999),
           },
-        });
-      }
-    }
+        },
+      });
 
-    return invoice;
+      const nextSequence = String(currentCount + 1).padStart(3, "0");
+      const invoiceNumber = `F-${year}-${month}-${nextSequence}`;
+
+      const invoice = await tx.invoice.create({
+        data: {
+          number: invoiceNumber,
+          clientId: quote.clientId,
+          companyInfoId: companyInfoId,
+          createdById: userId,
+          total: quote.total,
+          deposit: 0,
+          paymentStatus: "unpaid",
+          isDelivered: false,
+          originalQuoteId: quote.id,
+        },
+        select: {
+          id: true,
+          number: true,
+          total: true,
+          deposit: true,
+          paymentStatus: true,
+          isDelivered: true,
+          clientId: true,
+          createdAt: true,
+        },
+      });
+
+      if (quote.orders && quote.orders.length > 0) {
+        for (const order of quote.orders) {
+          const isService = isServiceProduct(order.productId);
+          const initialStatus = isService
+            ? "not_applicable"
+            : "waiting_for_file";
+
+          const createdOrder = await tx.order.create({
+            data: {
+              reference: `CMD-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              designation: order.designation,
+              clientId: quote.clientId,
+              invoiceId: invoice.id,
+              productId: order.productId,
+              dimensions: order.dimensions,
+              label: order.label,
+              quantity: order.quantity,
+              unitPrice: order.unitPrice,
+              createdById: userId,
+              status: initialStatus,
+            },
+          });
+
+          if (!isService) {
+            await tx.orderStatusHistory.create({
+              data: {
+                orderId: createdOrder.id,
+                fromStatus: null,
+                toStatus: "waiting_for_file",
+                changedById: userId,
+              },
+            });
+
+            await notificationsService.notifyRoles(tx, ["GRAPHIC_DESIGNER"], {
+              type: NOTIFICATION_TYPES.ORDER_CREATED,
+              title: "Nouvelle commande",
+              message: `Nouvelle commande ${createdOrder.reference} — ${order.designation}`,
+              link: `/orders?openOrder=${createdOrder.id}`,
+              orderId: createdOrder.id,
+            });
+          }
+        }
+      }
+
+      return invoice;
+    });
   }
 }

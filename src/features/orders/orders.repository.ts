@@ -15,6 +15,10 @@ import {
   IN_PROGRESS_STATUSES,
   IN_PRODUCTION_STATUSES,
 } from "./orders.constants.js";
+import { notificationsService } from "@/features/notifications/index.js";
+import { NOTIFICATION_TYPES } from "@/features/notifications/index.js";
+import { ORDER_STATUS_PIPELINE } from "./orders.constants.js";
+import { BadRequestError } from "@/shared/error/error.js";
 
 export class OrdersRepository {
   async findAll(query: OrdersQuery): Promise<PaginatedOrdersList> {
@@ -116,6 +120,84 @@ export class OrdersRepository {
     });
   }
 
+  async updateStatusWithHistory(
+    tx: Prisma.TransactionClient,
+    id: number,
+    status: UpdateOrderStatusInput["status"],
+    historyData: {
+      fromStatus: string;
+      changedById: string;
+    },
+  ) {
+    const updated = await tx.order.update({
+      where: { id, deletedAt: null },
+      data: { status },
+      select: orderDetailSelect,
+    });
+
+    await tx.orderStatusHistory.create({
+      data: {
+        orderId: id,
+        fromStatus: historyData.fromStatus,
+        toStatus: status,
+        changedById: historyData.changedById,
+      },
+    });
+    const getStatusIndex = (status: string | null): number => {
+      if (!status) return -1;
+      return ORDER_STATUS_PIPELINE[status] ?? -1;
+    };
+
+    const fromIndex = getStatusIndex(historyData.fromStatus);
+    const toIndex = getStatusIndex(status);
+
+    const isRollback = toIndex < fromIndex && fromIndex >= 0 && toIndex >= 0;
+
+    if (isRollback) {
+      await notificationsService.notifyRoles(
+        tx,
+        ["GRAPHIC_DESIGNER", "PRINTER", "SALES", "ADMIN"],
+        {
+          type: NOTIFICATION_TYPES.ORDER_STATUS_ROLLBACK,
+          title: "Retour arrière de statut",
+          message: `Commande ${updated.reference} : retour de "${historyData.fromStatus}" vers "${status}"`,
+          link: `/orders?openOrder=${id}`,
+          orderId: id,
+          metadata: {
+            fromStatus: historyData.fromStatus,
+            toStatus: status,
+          },
+        },
+      );
+    } else if (status === "file_completed") {
+      await notificationsService.notifyRoles(tx, ["PRINTER"], {
+        type: NOTIFICATION_TYPES.ORDER_FILE_COMPLETED,
+        title: "Fichier prêt à imprimer",
+        message: `Commande ${updated.reference} : fichier prêt`,
+        link: `/orders?openOrder=${id}`,
+        orderId: id,
+        metadata: {
+          fromStatus: historyData.fromStatus,
+          toStatus: status,
+        },
+      });
+    } else if (status === "ready_for_delivery") {
+      await notificationsService.notifyRoles(tx, ["SALES", "DELIVERER"], {
+        type: NOTIFICATION_TYPES.ORDER_READY_FOR_DELIVERY,
+        title: "Commande prête pour livraison",
+        message: `Commande ${updated.reference} : prête pour livraison`,
+        link: `/orders?openOrder=${id}`,
+        orderId: id,
+        metadata: {
+          fromStatus: historyData.fromStatus,
+          toStatus: status,
+        },
+      });
+    }
+
+    return updated;
+  }
+
   async addNote(orderId: number, userId: string, data: AddOrderNoteInput) {
     return await prisma.note.create({
       data: {
@@ -169,15 +251,22 @@ export class OrdersRepository {
   }
 
   async getStats(): Promise<OrderStats> {
-    const baseWhere: Prisma.OrderWhereInput = { deletedAt: null };
+    const baseWhere: Prisma.OrderWhereInput = {
+      deletedAt: null,
+      status: { not: "not_applicable" },
+    };
 
     const [
+      waitingForVisual,
       waitingForFile,
       inProgress,
       inProduction,
       readyForDelivery,
       grouped,
     ] = await Promise.all([
+      prisma.order.count({
+        where: { ...baseWhere, status: "waiting_for_visual" },
+      }),
       prisma.order.count({
         where: { ...baseWhere, status: "waiting_for_file" },
       }),
@@ -209,6 +298,7 @@ export class OrdersRepository {
     }
 
     return {
+      waitingForVisual,
       waitingForFile,
       inProgress,
       inProduction,
@@ -216,32 +306,4 @@ export class OrdersRepository {
       byStatus,
     };
   }
-
-  // async getStats(): Promise<OrderStats> {
-  //   const baseWhere: Prisma.OrderWhereInput = { deletedAt: null };
-
-  //   const [waitingForFile, inProgress, inProduction, readyForDelivery] =
-  //     await Promise.all([
-  //       prisma.order.count({
-  //         where: { ...baseWhere, status: "waiting_for_file" },
-  //       }),
-  //       prisma.order.count({
-  //         where: {
-  //           ...baseWhere,
-  //           status: { in: [...IN_PROGRESS_STATUSES] },
-  //         },
-  //       }),
-  //       prisma.order.count({
-  //         where: {
-  //           ...baseWhere,
-  //           status: { in: [...IN_PRODUCTION_STATUSES] },
-  //         },
-  //       }),
-  //       prisma.order.count({
-  //         where: { ...baseWhere, status: "ready_for_delivery" },
-  //       }),
-  //     ]);
-
-  //   return { waitingForFile, inProgress, inProduction, readyForDelivery };
-  // }
 }

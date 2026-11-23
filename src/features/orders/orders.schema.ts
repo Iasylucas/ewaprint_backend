@@ -3,6 +3,7 @@ import { paginationSchema } from "@/shared/schemas/query.schema.js";
 
 export const updateOrderStatusSchema = z.object({
   status: z.enum([
+    "waiting_for_visual",
     "waiting_for_file",
     "in_progress",
     "file_completed",
@@ -19,7 +20,7 @@ export const addOrderNoteSchema = z.object({
 });
 
 export const addOrderFileSchema = z.object({
-  url: z.string().url("L'URL du fichier est invalide"),
+  url: z.url("L'URL du fichier est invalide"),
   category: z.enum(["client_visual", "final_print"]),
 });
 
@@ -34,6 +35,7 @@ export const ordersQuerySchema = paginationSchema.extend({
       "ready_for_delivery",
       "delivered",
       "cancelled",
+      "not_applicable",
     ])
     .optional(),
   clientId: z.string().optional(),
