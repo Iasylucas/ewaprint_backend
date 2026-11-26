@@ -20,7 +20,6 @@ export const createSingleOrderLineSchema = z.object({
   atelierNote: z.string().trim().optional().nullable(),
   quantity: z
     .number()
-    .int()
     .positive("La quantité doit être un entier supérieur à 0"),
 
   unitPrice: z
@@ -69,7 +68,7 @@ export const updateOrderFromPosSchema = z.object({
         designation: z.string().trim().min(1),
         label: z.string().trim().optional().nullable(),
         dimensions: z.string().trim().optional().nullable(),
-        quantity: z.number().int().positive(),
+        quantity: z.number().positive(),
         unitPrice: z.number().int().nonnegative(),
         atelierNote: z.string().trim().optional().nullable(),
         waitingForVisual: z.boolean().optional(),

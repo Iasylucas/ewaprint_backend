@@ -34,3 +34,18 @@ export const SERVICE_PRODUCT_ID_THRESHOLD = 12;
 export const isServiceProduct = (
   productId: number | null | undefined,
 ): boolean => !!productId && productId > SERVICE_PRODUCT_ID_THRESHOLD;
+
+export const LABELS: Record<string, string> = {
+  waiting_for_file: "En attente de fichier",
+  in_progress: "En cours",
+  file_completed: "Fichier terminé",
+  printing_in_progress: "En impression",
+  cutting_in_progress: "En découpe",
+  ready_for_delivery: "Prête à livrer",
+  delivered: "Livrée",
+  unpaid: "Impayée",
+  partial: "Partiellement payée",
+  paid: "Payée",
+  pending: "En attente",
+  converted: "Converti en facture",
+};

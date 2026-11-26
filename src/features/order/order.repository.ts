@@ -810,7 +810,6 @@ export class OrderRepository {
                 orderId: created.id,
               });
             }
-
             createdOrderIds[i] = created.id;
           }
         }

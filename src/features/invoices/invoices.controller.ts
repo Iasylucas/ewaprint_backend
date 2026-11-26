@@ -108,5 +108,4 @@ export const invoicesController = {
     const stats = await invoicesService.getStats();
     res.status(200).json({ success: true, data: stats });
   }),
-
 };

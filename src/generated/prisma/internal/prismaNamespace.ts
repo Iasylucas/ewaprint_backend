@@ -2282,20 +2282,6 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'PricingMode'
- */
-export type EnumPricingModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PricingMode'>
-    
-
-
-/**
- * Reference to a field of type 'PricingMode[]'
- */
-export type ListEnumPricingModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PricingMode[]'>
-    
-
-
-/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2306,6 +2292,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PricingMode'
+ */
+export type EnumPricingModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PricingMode'>
+    
+
+
+/**
+ * Reference to a field of type 'PricingMode[]'
+ */
+export type ListEnumPricingModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PricingMode[]'>
     
 
 /**

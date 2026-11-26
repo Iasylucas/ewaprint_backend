@@ -14,6 +14,7 @@ import {
 import {
   IN_PROGRESS_STATUSES,
   IN_PRODUCTION_STATUSES,
+  LABELS,
 } from "./orders.constants.js";
 import { notificationsService } from "@/features/notifications/index.js";
 import { NOTIFICATION_TYPES } from "@/features/notifications/index.js";
@@ -160,7 +161,7 @@ export class OrdersRepository {
         {
           type: NOTIFICATION_TYPES.ORDER_STATUS_ROLLBACK,
           title: "Retour arrière de statut",
-          message: `Commande ${updated.reference} : retour de "${historyData.fromStatus}" vers "${status}"`,
+          message: `Commande ${updated.reference} : retour de "${LABELS[historyData.fromStatus]}" vers "${LABELS[status]}"`,
           link: `/orders?openOrder=${id}`,
           orderId: id,
           metadata: {

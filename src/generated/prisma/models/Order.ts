@@ -316,7 +316,7 @@ export type OrderWhereInput = {
   clientId?: Prisma.StringFilter<"Order"> | string
   productId?: Prisma.IntNullableFilter<"Order"> | number | null
   unitPrice?: Prisma.IntFilter<"Order"> | number
-  quantity?: Prisma.IntFilter<"Order"> | number
+  quantity?: Prisma.FloatFilter<"Order"> | number
   status?: Prisma.StringFilter<"Order"> | string
   invoiceId?: Prisma.IntNullableFilter<"Order"> | number | null
   quoteId?: Prisma.IntNullableFilter<"Order"> | number | null
@@ -375,7 +375,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   clientId?: Prisma.StringFilter<"Order"> | string
   productId?: Prisma.IntNullableFilter<"Order"> | number | null
   unitPrice?: Prisma.IntFilter<"Order"> | number
-  quantity?: Prisma.IntFilter<"Order"> | number
+  quantity?: Prisma.FloatFilter<"Order"> | number
   status?: Prisma.StringFilter<"Order"> | string
   invoiceId?: Prisma.IntNullableFilter<"Order"> | number | null
   quoteId?: Prisma.IntNullableFilter<"Order"> | number | null
@@ -430,7 +430,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   clientId?: Prisma.StringWithAggregatesFilter<"Order"> | string
   productId?: Prisma.IntNullableWithAggregatesFilter<"Order"> | number | null
   unitPrice?: Prisma.IntWithAggregatesFilter<"Order"> | number
-  quantity?: Prisma.IntWithAggregatesFilter<"Order"> | number
+  quantity?: Prisma.FloatWithAggregatesFilter<"Order"> | number
   status?: Prisma.StringWithAggregatesFilter<"Order"> | string
   invoiceId?: Prisma.IntNullableWithAggregatesFilter<"Order"> | number | null
   quoteId?: Prisma.IntNullableWithAggregatesFilter<"Order"> | number | null
@@ -491,7 +491,7 @@ export type OrderUpdateInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -516,7 +516,7 @@ export type OrderUncheckedUpdateInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -555,7 +555,7 @@ export type OrderUpdateManyMutationInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -571,7 +571,7 @@ export type OrderUncheckedUpdateManyInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -872,6 +872,14 @@ export type OrderUpdateOneRequiredWithoutNotesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutNotesInput, Prisma.OrderUpdateWithoutNotesInput>, Prisma.OrderUncheckedUpdateWithoutNotesInput>
 }
 
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type OrderCreateNestedOneWithoutStatusHistoryInput = {
   create?: Prisma.XOR<Prisma.OrderCreateWithoutStatusHistoryInput, Prisma.OrderUncheckedCreateWithoutStatusHistoryInput>
   connectOrCreate?: Prisma.OrderCreateOrConnectWithoutStatusHistoryInput
@@ -1025,7 +1033,7 @@ export type OrderScalarWhereInput = {
   clientId?: Prisma.StringFilter<"Order"> | string
   productId?: Prisma.IntNullableFilter<"Order"> | number | null
   unitPrice?: Prisma.IntFilter<"Order"> | number
-  quantity?: Prisma.IntFilter<"Order"> | number
+  quantity?: Prisma.FloatFilter<"Order"> | number
   status?: Prisma.StringFilter<"Order"> | string
   invoiceId?: Prisma.IntNullableFilter<"Order"> | number | null
   quoteId?: Prisma.IntNullableFilter<"Order"> | number | null
@@ -1307,7 +1315,7 @@ export type OrderUpdateWithoutFilesInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1331,7 +1339,7 @@ export type OrderUncheckedUpdateWithoutFilesInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1409,7 +1417,7 @@ export type OrderUpdateWithoutNotesInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1433,7 +1441,7 @@ export type OrderUncheckedUpdateWithoutNotesInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1511,7 +1519,7 @@ export type OrderUpdateWithoutStatusHistoryInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1535,7 +1543,7 @@ export type OrderUncheckedUpdateWithoutStatusHistoryInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1682,7 +1690,7 @@ export type OrderUpdateWithoutNotificationsInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1706,7 +1714,7 @@ export type OrderUncheckedUpdateWithoutNotificationsInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1743,7 +1751,7 @@ export type OrderUpdateWithoutClientInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1766,7 +1774,7 @@ export type OrderUncheckedUpdateWithoutClientInput = {
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1788,7 +1796,7 @@ export type OrderUncheckedUpdateManyWithoutClientInput = {
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1822,7 +1830,7 @@ export type OrderUpdateWithoutCreatedByInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1846,7 +1854,7 @@ export type OrderUncheckedUpdateWithoutCreatedByInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1868,7 +1876,7 @@ export type OrderUncheckedUpdateManyWithoutCreatedByInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1901,7 +1909,7 @@ export type OrderUpdateWithoutQuoteInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1925,7 +1933,7 @@ export type OrderUncheckedUpdateWithoutQuoteInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1947,7 +1955,7 @@ export type OrderUncheckedUpdateManyWithoutQuoteInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1980,7 +1988,7 @@ export type OrderUpdateWithoutInvoiceInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2004,7 +2012,7 @@ export type OrderUncheckedUpdateWithoutInvoiceInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2026,7 +2034,7 @@ export type OrderUncheckedUpdateManyWithoutInvoiceInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2059,7 +2067,7 @@ export type OrderUpdateWithoutProductInput = {
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2082,7 +2090,7 @@ export type OrderUncheckedUpdateWithoutProductInput = {
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2104,7 +2112,7 @@ export type OrderUncheckedUpdateManyWithoutProductInput = {
   dimensions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   unitPrice?: Prisma.IntFieldUpdateOperationsInput | number
-  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quoteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2766,7 +2774,7 @@ export interface OrderFieldRefs {
   readonly clientId: Prisma.FieldRef<"Order", 'String'>
   readonly productId: Prisma.FieldRef<"Order", 'Int'>
   readonly unitPrice: Prisma.FieldRef<"Order", 'Int'>
-  readonly quantity: Prisma.FieldRef<"Order", 'Int'>
+  readonly quantity: Prisma.FieldRef<"Order", 'Float'>
   readonly status: Prisma.FieldRef<"Order", 'String'>
   readonly invoiceId: Prisma.FieldRef<"Order", 'Int'>
   readonly quoteId: Prisma.FieldRef<"Order", 'Int'>

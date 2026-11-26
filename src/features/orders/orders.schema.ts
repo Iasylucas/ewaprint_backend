@@ -49,7 +49,7 @@ export const updateOrderSchema = z.object({
   designation: z.string().trim().min(1).optional(),
   label: z.string().trim().optional().nullable(),
   dimensions: z.string().trim().optional().nullable(),
-  quantity: z.number().int().positive().optional(),
+  quantity: z.number().positive().optional(),
   unitPrice: z.number().int().nonnegative().optional(),
   status: z
     .enum([
