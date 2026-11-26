@@ -1,313 +1,167 @@
-import { prisma } from "@/config/prisma.js";
-import { Prisma } from "@/generated/prisma/client.js";
 import {
-  invoiceListSelect,
-  invoiceDetailSelect,
+  NotFoundError,
+  BadRequestError,
+  InternalServerError,
+} from "@/shared/error/error.js";
+import { InvoicesRepository } from "./invoices.repository.js";
+import { OrdersRepository } from "../orders/orders.repository.js";
+import {
   InvoicesQuery,
   UpdateInvoiceInput,
   AddPaymentInput,
-  PaginatedInvoicesList,
+  InvoiceDetailOutput,
   InvoiceStats,
 } from "./invoices.types.js";
-import { INVOICE_ERRORS } from "./invoices.constants.js";
-import { InternalServerError, NotFoundError } from "@/shared/error/error.js";
+import { INVOICE_ERRORS, INVOICE_STATS_ERRORS } from "./invoices.constants.js";
+import { prisma } from "@/config/prisma.js";
+import { paymentAuditLogService } from "@/features/payment-audit-log/index.js";
 
-export class InvoicesRepository {
-  async findAll(query: InvoicesQuery): Promise<PaginatedInvoicesList> {
-    const {
-      page,
-      limit,
-      search,
-      status,
-      clientId,
-      isDelivered,
-      sortBy,
-      sortOrder,
-      startDate,
-      endDate,
-    } = query;
-    const skip = (page - 1) * limit;
+export class InvoicesService {
+  constructor(
+    private readonly invoicesRepository: InvoicesRepository,
+    private readonly ordersRepository: OrdersRepository,
+  ) {}
 
-    const where: Prisma.InvoiceWhereInput = { deletedAt: null };
-
-    if (status) where.paymentStatus = status;
-    if (clientId) where.clientId = clientId;
-    if (isDelivered !== undefined) where.isDelivered = isDelivered;
-
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
-    }
-
-    if (search) {
-      where.OR = [
-        { number: { contains: search, mode: "insensitive" } },
-        { client: { firstName: { contains: search, mode: "insensitive" } } },
-        { client: { lastName: { contains: search, mode: "insensitive" } } },
-      ];
-    }
-
-    const [data, total] = await Promise.all([
-      prisma.invoice.findMany({
-        where,
-        select: invoiceListSelect,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-      }),
-      prisma.invoice.count({ where }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-    const hasMore = page < totalPages;
-
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasMore,
-        search,
-        status,
-        clientId,
-        isDelivered,
-        sortBy,
-        sortOrder,
-      },
-    };
+  async listInvoices(query: InvoicesQuery) {
+    return await this.invoicesRepository.findAll(query);
   }
 
-  async findById(id: number) {
-    return await prisma.invoice.findUnique({
-      where: { id, deletedAt: null },
-      select: invoiceDetailSelect,
-    });
+  async getInvoiceById(id: number): Promise<InvoiceDetailOutput> {
+    const invoice = await this.invoicesRepository.findById(id);
+    if (!invoice) {
+      throw new NotFoundError(INVOICE_ERRORS.NOT_FOUND);
+    }
+    return invoice;
   }
 
-  async update(id: number, data: UpdateInvoiceInput) {
-    const updateData: any = { ...data };
+  async updateInvoice(
+    id: number,
+    data: UpdateInvoiceInput,
+  ): Promise<InvoiceDetailOutput> {
+    await this.getInvoiceById(id);
 
-    if (data.deposit !== undefined) {
-      const current = await prisma.invoice.findUnique({
-        where: { id },
-        select: { total: true, deposit: true },
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestError(INVOICE_ERRORS.NO_FIELDS_TO_UPDATE);
+    }
+
+    try {
+      return await this.invoicesRepository.update(id, data);
+    } catch (error) {
+      throw new InternalServerError(INVOICE_ERRORS.UPDATE_FAILED);
+    }
+  }
+
+  async markAsDelivered(id: number): Promise<InvoiceDetailOutput> {
+    await this.getInvoiceById(id);
+
+    try {
+      const invoice = await this.invoicesRepository.markAsDelivered(id);
+      return invoice;
+    } catch (error) {
+      throw new InternalServerError(INVOICE_ERRORS.DELIVER_FAILED);
+    }
+  }
+
+  async addPayment(invoiceId: number, userId: string, data: AddPaymentInput) {
+    const invoice = await this.getInvoiceById(invoiceId);
+    const invoiceRemaining = invoice.total - invoice.deposit;
+    if (invoice.paymentStatus === "paid") {
+      throw new BadRequestError(INVOICE_ERRORS.ALREADY_PAID);
+    }
+
+    if (data.amount > invoiceRemaining) {
+      throw new BadRequestError(INVOICE_ERRORS.PAYMENT_EXCEEDS_REMAINING);
+    }
+
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const payment = await this.invoicesRepository.addPayment(
+          tx,
+          invoiceId,
+          userId,
+          data,
+        );
+
+        await paymentAuditLogService.create(tx, {
+          action: "CREATE",
+          paymentId: payment.id,
+          userId,
+          oldData: null,
+          newData: {
+            ...payment,
+            invoice: {
+              id: invoiceId,
+              number: invoice.number,
+            },
+          },
+        });
+
+        return payment;
       });
-
-      if (current) {
-        const newDeposit = data.deposit;
-        updateData.paymentStatus =
-          newDeposit >= current.total
-            ? "paid"
-            : newDeposit > 0
-              ? "partial"
-              : "unpaid";
-      }
+    } catch {
+      throw new InternalServerError(INVOICE_ERRORS.PAYMENT_FAILED);
     }
-
-    return await prisma.invoice.update({
-      where: { id, deletedAt: null },
-      data: updateData,
-      select: invoiceDetailSelect,
-    });
   }
 
-  async markAsDelivered(id: number) {
-    const invoice = await prisma.invoice.findUnique({
-      where: { id },
-      select: {
-        orders: {
-          select: { id: true },
-          where: {
-            status: { not: "not_applicable" },
+  async deletePayment(paymentId: number, userId: string) {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // On récupère l'ancien état avant suppression
+        const oldPayment = await tx.payment.findUnique({
+          where: { id: paymentId, deletedAt: null },
+          include: {
+            invoice: {
+              select: { id: true, number: true },
+            },
           },
-        },
-      },
-    });
+        });
+        await this.invoicesRepository.deletePayment(tx, paymentId);
 
-    if (!invoice) throw new Error("Facture introuvable");
-
-    const orderIds = invoice.orders.map((o) => o.id);
-
-    if (orderIds.length > 0) {
-      await prisma.order.updateMany({
-        where: { id: { in: orderIds } },
-        data: { status: "delivered" },
+        if (oldPayment) {
+          await paymentAuditLogService.create(tx, {
+            action: "DELETE",
+            paymentId,
+            userId,
+            oldData: oldPayment,
+            newData: null,
+          });
+        }
       });
+    } catch {
+      throw new InternalServerError(INVOICE_ERRORS.DELETE_PAYMENT_FAILED);
     }
-
-    return await prisma.invoice.update({
-      where: { id },
-      data: { isDelivered: true },
-      select: invoiceDetailSelect,
-    });
-  }
-
-  async addPayment(
-    tx: Prisma.TransactionClient,
-    invoiceId: number,
-    userId: string,
-    data: AddPaymentInput,
-  ) {
-    const invoice = await tx.invoice.findUnique({
-      where: { id: invoiceId },
-      select: { total: true, deposit: true },
-    });
-
-    if (!invoice) throw new Error("Facture introuvable");
-
-    const newDeposit = invoice.deposit + data.amount;
-
-    const payment = await tx.payment.create({
-      data: {
-        invoiceId,
-        amount: data.amount,
-        method: data.method,
-        reference: data.reference || null,
-        receivedById: userId,
-      },
-      select: {
-        id: true,
-        amount: true,
-        method: true,
-        reference: true,
-        date: true,
-        receivedById: true,
-        receivedBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
-    });
-
-    await tx.invoice.update({
-      where: { id: invoiceId },
-      data: {
-        deposit: newDeposit,
-        paymentStatus:
-          newDeposit >= invoice.total
-            ? "paid"
-            : newDeposit > 0
-              ? "partial"
-              : "unpaid",
-      },
-    });
-
-    return payment;
-  }
-
-  async deletePayment(tx: Prisma.TransactionClient, paymentId: number) {
-    const payment = await tx.payment.findUnique({
-      where: { id: paymentId },
-      select: {
-        amount: true,
-        invoiceId: true,
-        invoice: {
-          select: {
-            total: true,
-            deposit: true,
-          },
-        },
-      },
-    });
-
-    if (!payment) throw new Error("Paiement introuvable");
-
-    const newDeposit = payment.invoice.deposit - payment.amount;
-
-    await tx.payment.update({
-      where: { id: paymentId },
-      data: { deletedAt: new Date() },
-      select: { id: true },
-    });
-
-    await tx.invoice.update({
-      where: { id: payment.invoiceId },
-      data: {
-        deposit: newDeposit,
-        paymentStatus:
-          newDeposit >= payment.invoice.total
-            ? "paid"
-            : newDeposit > 0
-              ? "partial"
-              : "unpaid",
-      },
-    });
   }
 
   async softDeleteInvoice(id: number) {
+    await this.getInvoiceById(id);
+
     try {
-      return await prisma.$transaction(async (tx) => {
-        // 1. Vérifier que la facture existe et n'est pas déjà supprimée
-        const invoice = await tx.invoice.findFirst({
-          where: { id, deletedAt: null },
-        });
-
-        if (!invoice) {
-          throw new NotFoundError(INVOICE_ERRORS.NOT_FOUND);
-        }
-
-        // 2. Soft delete des orders liés à la facture
-        await tx.order.updateMany({
-          where: {
-            invoiceId: id,
-            deletedAt: null,
-          },
-          data: { deletedAt: new Date() },
-        });
-
-        // 3. Soft delete de la facture
-        return await tx.invoice.update({
-          where: { id },
-          data: { deletedAt: new Date() },
-        });
-      });
+      const invoice = await this.invoicesRepository.softDeleteInvoice(id);
+      return invoice;
     } catch (error) {
-      // Si c'est déjà une erreur métier, on la laisse remonter
-      if (error instanceof NotFoundError) throw error;
-
       throw new InternalServerError(INVOICE_ERRORS.DELETE_FAILED);
     }
   }
 
-  async restore(id: number) {
-    return await prisma.invoice.update({
-      where: { id },
-      data: { deletedAt: null },
-      select: invoiceDetailSelect,
-    });
+  async restoreInvoice(id: number) {
+    try {
+      const invoice = await this.invoicesRepository.restore(id);
+      return invoice;
+    } catch (error) {
+      throw new InternalServerError(INVOICE_ERRORS.RESTORE_FAILED);
+    }
   }
 
   async getStats(): Promise<InvoiceStats> {
-    const baseWhere: Prisma.InvoiceWhereInput = { deletedAt: null };
-
-    const [unpaid, partial, remainingAgg, toDeliver] = await Promise.all([
-      prisma.invoice.count({
-        where: { ...baseWhere, paymentStatus: "unpaid" },
-      }),
-      prisma.invoice.count({
-        where: { ...baseWhere, paymentStatus: "partial" },
-      }),
-      prisma.invoice.aggregate({
-        where: {
-          ...baseWhere,
-          paymentStatus: { in: ["unpaid", "partial"] },
-        },
-        _sum: { total: true, deposit: true },
-      }),
-      prisma.invoice.count({
-        where: { ...baseWhere, isDelivered: false },
-      }),
-    ]);
-
-    const remainingToCollect =
-      (remainingAgg._sum.total ?? 0) - (remainingAgg._sum.deposit ?? 0);
-
-    return { unpaid, partial, remainingToCollect, toDeliver };
+    try {
+      return await this.invoicesRepository.getStats();
+    } catch (error) {
+      throw new InternalServerError(INVOICE_STATS_ERRORS.STATS_FAILED);
+    }
   }
 }
+
+export const invoicesService = new InvoicesService(
+  new InvoicesRepository(),
+  new OrdersRepository(),
+);

@@ -290,7 +290,7 @@ model Order {
   product   Product? @relation(fields: [productId], references: [id])
 
   unitPrice Int
-  quantity  Int
+  quantity  Float
 
   status String @default("waiting_for_file")
   files  File[]

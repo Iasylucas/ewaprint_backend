@@ -9,6 +9,8 @@ import {
   PaginatedInvoicesList,
   InvoiceStats,
 } from "./invoices.types.js";
+import { INVOICE_ERRORS } from "./invoices.constants.js";
+import { InternalServerError, NotFoundError } from "@/shared/error/error.js";
 
 export class InvoicesRepository {
   async findAll(query: InvoicesQuery): Promise<PaginatedInvoicesList> {
@@ -238,12 +240,39 @@ export class InvoicesRepository {
     });
   }
 
-  async softDelete(id: number) {
-    return await prisma.invoice.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-      select: invoiceDetailSelect,
-    });
+  async softDeleteInvoice(id: number) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        // 1. Vérifier que la facture existe et n'est pas déjà supprimée
+        const invoice = await tx.invoice.findFirst({
+          where: { id, deletedAt: null },
+        });
+
+        if (!invoice) {
+          throw new NotFoundError(INVOICE_ERRORS.NOT_FOUND);
+        }
+
+        // 2. Soft delete des orders liés à la facture
+        await tx.order.updateMany({
+          where: {
+            invoiceId: id,
+            deletedAt: null,
+          },
+          data: { deletedAt: new Date() },
+        });
+
+        // 3. Soft delete de la facture
+        return await tx.invoice.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+      });
+    } catch (error) {
+      // Si c'est déjà une erreur métier, on la laisse remonter
+      if (error instanceof NotFoundError) throw error;
+
+      throw new InternalServerError(INVOICE_ERRORS.DELETE_FAILED);
+    }
   }
 
   async restore(id: number) {
