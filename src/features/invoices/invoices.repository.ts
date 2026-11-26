@@ -260,7 +260,10 @@ export class InvoicesRepository {
           },
           data: { deletedAt: new Date() },
         });
-
+        await tx.payment.updateMany({
+          where: { invoiceId: id, deletedAt: null },
+          data: { deletedAt: new Date() },
+        });
         // 3. Soft delete de la facture
         return await tx.invoice.update({
           where: { id },
